@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title>Smart Sweepers</title>
+	<script src="Brain/base.js"></script>
+	<script src="Brain/NeuralLayer.js"></script>
+	<script src="Brain/NeuralNet.js"></script>
+	<script src="Brain/Neuron.js"></script>
+
+	<script src="Gene/base.js"></script>
+	<script src="Gene/Genome.js"></script>
+	<script src="Gene/GeneticAlgorithm.js"></script>
+
+	<script src="SmartSweeper/base.js"></script>
+
+	<script src="SmartSweeper/Controller.js"></script>
+	<script src="SmartSweeper/Matrix2d.js"></script>
+	<script src="SmartSweeper/Vector2d.js"></script>
+</head>
+<body>
+<canvas id="game-canvas" width="400" height="400"></canvas>
+</body>
+<script>
+var canvas = document.getElementById('game-canvas'),
+	ctx = canvas.getContext('2d'),
+	button = document.getElementById('step-button'),
+
+	controller = new SmartSweeper.Controller(),
+	generation = controller.generations;
+
+controller.render(ctx);
+controller.plotStats();
+
+function animate() {
+	controller.update();
+	controller.render(ctx);
+
+	if (generation != controller.generations) {
+		generation = controller.generations;
+		controller.plotStats();
+	}
+
+	requestAnimationFrame(function() {
+		animate();
+	});
+}
+
+animate();
+
+</script>
+</html>
