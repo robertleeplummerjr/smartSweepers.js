@@ -128,7 +128,7 @@
 	Controller.prototype = {
 		plotStats: function (ctx) {
 			var generationEl = document.createElement('td');
-			generationEl.appendChild(document.createTextNode(this.generations));
+			generationEl.appendChild(document.createTextNode(this.generations + ''));
 
 			var bestFitnessEl = document.createElement('td');
 			bestFitnessEl.appendChild(document.createTextNode(this.ga.getBestFitness()));
