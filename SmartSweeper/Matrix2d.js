@@ -1,4 +1,5 @@
 (function(SmartSweeper) {
+	"use strict";
 
 	var Matrix2d = function() {
 		this.identity();
@@ -53,7 +54,17 @@
 			matTemp._32 = (this._31 * rhs._12) + (this._32 * rhs._22) + (this._33 * rhs._32);
 			matTemp._33 = (this._31 * rhs._13) + (this._32 * rhs._23) + (this._33 * rhs._33);
 
-			return matTemp;
+			this._11 = matTemp._11;
+			this._12 = matTemp._12;
+			this._13 = matTemp._13;
+			this._21 = matTemp._21;
+			this._22 = matTemp._22;
+			this._23 = matTemp._23;
+			this._31 = matTemp._31;
+			this._32 = matTemp._32;
+			this._33 = matTemp._33;
+
+			return this;
 		},
 
 		// Not sure what this does yet

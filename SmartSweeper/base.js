@@ -1,8 +1,17 @@
-var SmartSweeper = (function() {
+var SmartSweeper = (function(Brain) {
 	"use strict";
 
+	function clamp(arg, min, max) {
+		if (arg < min) {
+			arg = min;
+		}
 
+		if (arg > max) {
+			arg = max;
+		}
 
+		return arg;
+	}
 
 	function SmartSweeper(params) {
 		this.params = params;
@@ -20,49 +29,66 @@ var SmartSweeper = (function() {
 
 	// Update SmartSweeper position using neural network
 	SmartSweeper.prototype = {
+		/**
+		 * First we take sensor readings and feed these into the sweepers brain. We receive two outputs from the brain.. lTrack & rTrack.
+		 * So given a force for each track we calculate the resultant rotation
+		 * and acceleration and apply to current velocity vector.
+		 * @param {Object} mines sweepers 'look at' vector (x, y)
+		 * @returns {boolean}
+		 */
 		update: function (mines) {
-			var inputs = [];
-			this.closestMine = this.getClosestMine(mines);
-			this.closestMine = SmartSweeper.Vector2dNormalize(this.closestMine);
+			//this will store all the inputs for the NN
+			var inputs = [],
 
-			inputs.push(this.closestMine.x);
-			inputs.push(this.closestMine.y);
+				//get vector to closest mine
+				closestMineRaw = this.getClosestMine(mines),
+
+				//normalise it
+				closestMine = SmartSweeper.Vector2dNormalize(closestMineRaw);
+
+			this.closestMine = closestMine;
+
+			//add in vector to closest mine
+			inputs.push(closestMine.x);
+			inputs.push(closestMine.y);
+
+			//add in sweepers look at vector
 			inputs.push(this.direction.x);
 			inputs.push(this.direction.y);
 
+			//update the brain and get feedback
 			var output = this.brain.update(inputs);
 
-			// If num outputs are not correct, exit
+			//make sure there were no errors in calculating the
+			//output
 			if (output.length < this.params.numOutputs) {
 				return false;
 			}
 
+			//assign the outputs to the sweepers left & right tracks
 			this.lTrack = output[0];
 			this.rTrack = output[1];
 
-			// Clamp the rot force between -0.3 and 0.3
+			//calculate steering forces
 			var rotForce = this.lTrack - this.rTrack;
-			var min = -1 * this.params.maxTurnRate;
-			var max = this.params.maxTurnRate;
-			if (rotForce < min) {
-				rotForce = min;
-			}
 
-			if (rotForce > max) {
-				rotForce = max;
-			}
+			//clamp rotation
+			rotForce = clamp(rotForce, -this.params.maxTurnRate, this.params.maxTurnRate);
 
 			// Rotate sweeper
 			this.rotation += rotForce;
 
 			this.speed = (this.lTrack + this.rTrack);
 
-			this.direction.x = -1 * Math.sin(this.rotation);
+			//update Look At
+			this.direction.x = -Math.sin(this.rotation);
 			this.direction.y = Math.cos(this.rotation);
 
+			//update position
 			this.position.x += this.speed * this.direction.x;
 			this.position.y += this.speed * this.direction.y;
 
+			//wrap around window limits
 			// Make sure position is not out of the window
 			if (this.position.x > this.params.windowWidth) {
 				this.position.x = 0;
@@ -147,4 +173,4 @@ var SmartSweeper = (function() {
 	//source
 
 	return SmartSweeper;
-})();
+})(Brain);

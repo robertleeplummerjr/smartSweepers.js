@@ -1,4 +1,6 @@
 (function(Gene) {
+	"use strict";
+
 	function GeneticAlgorithm(popSize, mutationRate, crossoverRate, numWeights, maxPerturbation, numElite, numCopiesElite) {
 		// Holds entire population of chromosomes
 		this.pop = [];
@@ -129,9 +131,11 @@
 
 		calculateBestWorstAvTot: function() {
 			this.totalFitness = 0;
-			bestFitness = 0;
-			lowestFitness = 9999999;
-			for (var i = 0; i < this.popSize; i++) {
+			var bestFitness = 0,
+				lowestFitness = 9999999,
+				i;
+
+			for (i = 0; i < this.popSize; i++) {
 				if (this.pop[i].fitness > bestFitness) {
 					bestFitness = this.pop[i].fitness;
 					this.bestFitness = bestFitness;

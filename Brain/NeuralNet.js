@@ -1,14 +1,13 @@
 (function(Brain) {
+	"use strict";
+
 	function NeuralNet(params) {
-		// @TODO(richard-to): Also need to handle case where there are no hidden layers, which means linear regression?
+		this.params = params;
+
 		this.numInputs = params.numInputs;
 		this.numOutputs = params.numOutputs;
 		this.numHiddenLayers = params.numHidden;
 		this.neuronsPerHiddenLayer = params.neuronsPerHiddenLayer;
-		// Not really sure how to deal with bias? Why -1 for default?
-		this.bias = params.bias;
-		// Why 1 again?
-		this.activationResponse = params.activationResponse;
 
 		this.layers = [];
 
@@ -16,80 +15,155 @@
 	}
 
 	NeuralNet.prototype = {
+		/**
+		 * this method builds the ANN. The weights are all initially set to
+		 * random values -1 < w < 1
+		 */
 		createNet: function() {
+
+			//create the layers of the network
 			if (this.numHiddenLayers > 0) {
-				this.layers.push(new NeuronLayer(this.neuronsPerHiddenLayer, this.numInputs));
+				//create first hidden layer
+				this.layers.push(new Brain.NeuronLayer(this.neuronsPerHiddenLayer, this.numInputs));
 				for (var i = 0; i < this.numHiddenLayers - 1; i++) {
-					this.layers.push(new NeuronLayer(
+					this.layers.push(new Brain.NeuronLayer(
 						this.neuronsPerHiddenLayer, this.neuronsPerHiddenLayer));
 				}
+
+				//create output layer
 				this.layers.push(
-					new NeuronLayer(this.numInputs, this.neuronsPerHiddenLayer));
+					new Brain.NeuronLayer(this.numInputs, this.neuronsPerHiddenLayer));
 			} else {
-				this.layers.push(new NeuronLayer(this.numOutputs, this.numInputs));
+				//create output layer
+				this.layers.push(new Brain.NeuronLayer(this.numOutputs, this.numInputs));
 			}
 		},
 
-		// Looks like purpose for this method is
-		// to get all the weights in a vector use in genetic algorithm?
+		/**
+		 * returns a vector containing the weights
+		 * @returns {Array}
+		 */
 		getWeights: function() {
-			var weights = [];
-			for (var i = 0; i < this.layers.length; i++) {
-				for (var j = 0; j < this.layers[i].neurons.length; j++) {
-					for (var h = 0; h < this.layers[i].neurons[j].weights.length; h++) {
-						weight.push(this.layers[i].neurons[j].weights[h]);
+			var weights = [],
+				i,
+				j,
+				k;
+
+			for (i = 0; i < this.layers.length; i++) {
+				for (j = 0; j < this.layers[i].neurons.length; j++) {
+					for (k = 0; k < this.layers[i].neurons[j].weights.length; k++) {
+						weights.push(this.layers[i].neurons[j].weights[k]);
 					}
 				}
 			}
 			return weights;
 		},
 
+		/**
+		 * given a vector of doubles this function replaces the weights in the NN
+		 * with the new values
+		 * @param weights
+		 */
 		putWeights: function(weights) {
+			//for each layer
 			for (var i = 0; i < this.layers.length; i++) {
+				//for each neuron
 				for (var j = 0; j < this.layers[i].neurons.length; j++) {
-					for (var h = 0; h < this.layers[i].neurons[j].weights.length; h++) {
-						this.layers[i].neurons[j].weights[h] = weights[h];
+					//for each weight
+					for (var k = 0; k < this.layers[i].neurons[j].weights.length; k++) {
+						this.layers[i].neurons[j].weights[k] = weights[k];
 					}
 				}
 			}
 		},
 
+		/**
+		 * returns the total number of weights needed for the net
+		 * @returns {number}
+		 */
 		getNumWeights: function() {
-			var count = 0;
+			var weights = 0;
+
+			//for each layer
 			for (var i = 0; i < this.layers.length; i++) {
+				//for each neuron
 				for (var j = 0; j < this.layers[i].neurons.length; j++) {
-					count += this.layers[i].neurons[j].weights.length;
+					//for each weight
+					for (var k = 0; k < this.layers[i].neurons[j].weights.length; k++) {
+						weights += this.layers[i].neurons[j].weights.length;
+					}
 				}
 			}
-			return count;
+			return weights;
 		},
 
 		// Looks like this is the important function that runs the neural network and gets our outputs
 		update: function(inputs) {
 
-			// This array keeps track of outputs after each layer
-			var outputs = [];
+			//stores the resultant outputs from each layer
+			var outputs = [],
+				output,
+				weight = 0,
+				netinput,
+				numInputs,
+				i,
+				j,
+				k;
+
+			//first check that we have the correct amount of inputs
 			if (inputs.length != this.numInputs) {
+				//just return an empty vector if incorrect.
 				return outputs;
 			}
 
-			for (var i = 0; i < this.numHiddenLayers; i++) {
+			//For each layer....
+			for (i = 0; i < this.numHiddenLayers; i++) {
 				// After the first layer, the inputs get set to the output
 				// of previous layer
 				if (i > 0) {
 					inputs = outputs;
 				}
 
-				for (var j = 0; j < this.layers[i].neurons.length; j++) {
-					// Correct term for this? Or is the result after going through Sigmoid?
-					var activation = 0;
-					for (var h = 0; h < this.layers[i].neurons[j].weights.length; h++) {
-						// sum += wN * iN
-						activation += this.layers[i].neurons[j].weights[h] * inputs[h];
+				while(outputs.length > 0) {outputs.pop()}
+				weight = 0;
+
+				//for each neuron sum the (inputs * corresponding weights).Throw
+				//the total at our sigmoid function to get the output.
+				for (j = 0; j < this.layers[i].neurons.length; j++) {
+					netinput = 0;
+
+					numInputs = this.layers[i].neurons[j].weights.length * 1;
+
+					//for each weight
+					for (k = 0; k < numInputs - 1; k++) {
+						//sum the weights x inputs
+						netinput += this.layers[i].neurons[j].weights[k] *
+							inputs[weight++];
 					}
-					activation += this.layers[i].neurons[j].weights[this.layers[i].neurons[j].weights.length - 1] * this.bias;
-					outputs.push(this.sigmoid(activation, this.activationResponse));
+
+					//add in the bias
+					netinput += this.layers[i].neurons[j].weights[numInputs - 1] *
+						this.params.bias;
+
+					//we can store the outputs from each layer as we generate them.
+					//The combined activation is first filtered through the sigmoid
+					//function
+					output = this.sigmoid(netinput, this.params.activationResponse);
+					if (NeuralNet.myBrain === this) {
+						console.log(output);
+					}
+					outputs.push(output * 1);
+
+					weight = 0;
 				}
+			}
+
+			if (NeuralNet.myBrian === undefined) {
+				NeuralNet.myBrain = this;
+			}
+
+			if (NeuralNet.myBrain === this) {
+				//console.log(outputs);
 			}
 			return outputs;
 		},

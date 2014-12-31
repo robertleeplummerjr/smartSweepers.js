@@ -1,4 +1,5 @@
-(function(SmartSweeper, Params, Gene) {
+(function(SmartSweeper, Gene) {
+	"use strict";
 
 	var cloneSweeperVerts = function () {
 			return [
@@ -60,13 +61,16 @@
 		};
 
 	var Controller = function (params) {
+		var key,
+			i;
+
 		if (params == undefined) params = {};
 
-		for (var key in Params) if (Params.hasOwnProperty(key)) {
+		for (key in Params) if (Params.hasOwnProperty(key)) {
 			if (params[key] === undefined) {
 				params[key] = Params[key];
 			}
-		}
+		};
 		this.params = params;
 		this.population = 0;
 		this.sweepers = [];
@@ -82,12 +86,6 @@
 		// Keep Per generation
 		this.bestFitness = [];
 
-		// What to do with these?
-		this.redPen;
-		this.bluePen;
-		this.greenPen;
-		this.oldPen;
-
 		// Cycles per generation? What does this mean?
 		this.ticks = 0;
 
@@ -100,7 +98,7 @@
 
 		this.fastRender = true;
 
-		for (var i = 0; i < this.numSweepers; ++i) {
+		for (i = 0; i < this.numSweepers; ++i) {
 			this.sweepers.push(new SmartSweeper(params));
 		}
 
@@ -117,11 +115,11 @@
 
 		this.population = this.ga.getChromos();
 
-		for (var i = 0; i < this.numSweepers; i++) {
+		for (i = 0; i < this.numSweepers; i++) {
 			this.sweepers[i].putWeights(this.population[i].weights);
 		}
 
-		for (var i = 0; i < this.numMines; i++) {
+		for (i = 0; i < this.numMines; i++) {
 			this.mines.push(new SmartSweeper.Vector2d(
 				Math.random() * this.cxClient, Math.random() * this.cyClient));
 		}
@@ -150,6 +148,9 @@
 		},
 
 		render: function (ctx) {
+			var i,
+				g;
+
 			ctx.clearRect(0, 0, this.params.windowWidth, this.params.windowHeight);
 			ctx.beginPath();
 			ctx.rect(0, 0, this.params.windowWidth, this.params.windowHeight);
@@ -157,11 +158,11 @@
 			ctx.fill();
 
 			ctx.beginPath();
-			for (var i = 0; i < this.numMines; i++) {
+			for (i = 0; i < this.numMines; i++) {
 				var mineVerts = cloneMineVerts();
 				mineVerts = this.worldTransform(mineVerts, this.mines[i]);
 				ctx.moveTo(mineVerts[0].x, mineVerts[0].y);
-				for (var g = 1; g < mineVerts.length; g++) {
+				for (g = 1; g < mineVerts.length; g++) {
 					ctx.lineTo(mineVerts[g].x, mineVerts[g].y);
 				}
 				ctx.lineTo(mineVerts[0].x, mineVerts[0].y);
@@ -171,7 +172,7 @@
 			ctx.stroke();
 
 			ctx.beginPath();
-			for (var i = 0; i < this.numSweepers; i++) {
+			for (i = 0; i < this.numSweepers; i++) {
 				var sweeperVerts = cloneSweeperVerts();
 				sweeperVerts = this.sweepers[i].worldTransform(sweeperVerts);
 
@@ -184,14 +185,14 @@
 
 				// Draw left track of sweeper
 				ctx.moveTo(sweeperVerts[0].x, sweeperVerts[0].y);
-				for (var g = 1; g < 4; ++g) {
+				for (g = 1; g < 4; ++g) {
 					ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
 				}
 				ctx.lineTo(sweeperVerts[0].x, sweeperVerts[0].y);
 
 				// Draw right track of sweeper
 				ctx.moveTo(sweeperVerts[4].x, sweeperVerts[4].y);
-				for (var g = 5; g < 8; ++g) {
+				for (g = 5; g < 8; ++g) {
 					ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
 				}
 				ctx.lineTo(sweeperVerts[4].x, sweeperVerts[4].y);
@@ -202,7 +203,7 @@
 
 				ctx.moveTo(sweeperVerts[10].x, sweeperVerts[10].y);
 
-				for (var g = 11; g < 16; ++g) {
+				for (g = 11; g < 16; ++g) {
 					ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
 				}
 			}
@@ -221,8 +222,9 @@
 		},
 
 		update: function () {
+			var i;
 			if (this.ticks++ < this.params.numTicks) {
-				for (var i = 0; i < this.numSweepers; i++) {
+				for (i = 0; i < this.numSweepers; i++) {
 					if (!this.sweepers[i].update(this.mines)) {
 						console.log("Wrong amount of NN inputs!");
 						return false;
@@ -264,4 +266,4 @@
 	};
 
 	SmartSweeper.Controller = Controller;
-}(SmartSweeper, SmartSweeper.Params, Gene));
+}(SmartSweeper, Gene));
