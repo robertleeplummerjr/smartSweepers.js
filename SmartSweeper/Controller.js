@@ -1,45 +1,79 @@
 (function(SmartSweeper, Params, Gene) {
 
 	var cloneSweeperVerts = function () {
-		return [
-			{x: -1, y: -1},
-			{x: -1, y: 1},
-			{x: -0.5, y: 1},
-			{x: -0.5, y: -1},
+			return [
+				{x: -1, y: -1},
+				{x: -1, y: 1},
+				{x: -0.5, y: 1},
+				{x: -0.5, y: -1},
 
-			{x: 0.5, y: -1},
-			{x: 1, y: -1},
-			{x: 1, y: 1},
-			{x: 0.5, y: 1},
+				{x: 0.5, y: -1},
+				{x: 1, y: -1},
+				{x: 1, y: 1},
+				{x: 0.5, y: 1},
 
-			{x: -0.5, y: -0.5},
-			{x: 0.5, y: -0.5},
+				{x: -0.5, y: -0.5},
+				{x: 0.5, y: -0.5},
 
-			{x: -0.5, y: 0.5},
-			{x: -0.25, y: 0.5},
-			{x: -0.25, y: 1.75},
-			{x: 0.25, y: 1.75},
-			{x: 0.25, y: 0.5},
-			{x: 0.5, y: 0.5}
-		];
-	};
+				{x: -0.5, y: 0.5},
+				{x: -0.25, y: 0.5},
+				{x: -0.25, y: 1.75},
+				{x: 0.25, y: 1.75},
+				{x: 0.25, y: 0.5},
+				{x: 0.5, y: 0.5}
+			];
+		},
 
-	var cloneMineVerts = function () {
-		return [
-			{x: -1, y: -1},
-			{x: -1, y: 1},
-			{x: 1, y: 1},
-			{x: 1, y: -1}
-		];
-	};
+		cloneMineVerts = function () {
+			return [
+				{x: -1, y: -1},
+				{x: -1, y: 1},
+				{x: 1, y: 1},
+				{x: 1, y: -1}
+			];
+		},
+		Params = {
+			pi: Math.PI,
+			halfPi: Math.PI/2,
+			twoPi: Math.PI * 2,
+			windowWidth: 400,
+			windowHeight: 400,
+			framesPerSecond: 0,
+			numInputs: 0,
+			numHidden: 0,
+			neuronsPerHiddenLayer: 0,
+			numOutputs: 0,
+			activationResponse: 0,
+			bias: 0,
+			maxTurnRate: 0,
+			maxSpeed: 0,
+			sweeperScale: 0,
+			numSweepers: 0,
+			numMines: 0,
+			numTicks: 0,
+			mineScale: 0,
+			crossoverRate: 0,
+			mutationRate: 0,
+			maxPerturbation: 0,
+			numElite: 0,
+			numCopiesElite: 0
+		};
 
-	var Controller = function () {
+	var Controller = function (params) {
+		if (params == undefined) params = {};
+
+		for (var key in Params) if (Params.hasOwnProperty(key)) {
+			if (params[key] === undefined) {
+				params[key] = Params[key];
+			}
+		}
+		this.params = params;
 		this.population = 0;
 		this.sweepers = [];
 		this.mines = [];
 		this.ga = null;
-		this.numSweepers = Params.numSweepers;
-		this.numMines = Params.numMines;
+		this.numSweepers = params.numSweepers;
+		this.numMines = params.numMines;
 		this.numWeightsForNN = 0;
 
 		// Keep Per generation
@@ -61,24 +95,24 @@
 		this.generations = 0;
 
 		// Dimension of window
-		this.cxClient = Params.windowWidth;
-		this.cyClient = Params.windowHeight;
+		this.cxClient = params.windowWidth;
+		this.cyClient = params.windowHeight;
 
 		this.fastRender = true;
 
 		for (var i = 0; i < this.numSweepers; ++i) {
-			this.sweepers.push(new SmartSweeper());
+			this.sweepers.push(new SmartSweeper(params));
 		}
 
 		this.numWeightsForNN = this.sweepers[0].getNumWeights();
 		this.ga = new Gene.GA(
 			this.numSweepers,
-			Params.mutationRate,
-			Params.crossoverRate,
+			params.mutationRate,
+			params.crossoverRate,
 			this.numWeightsForNN,
-			Params.maxPerturbation,
-			Params.numElite,
-			Params.numCopiesElite
+			params.maxPerturbation,
+			params.numElite,
+			params.numCopiesElite
 		);
 
 		this.population = this.ga.getChromos();
@@ -116,16 +150,16 @@
 		},
 
 		render: function (ctx) {
-			ctx.clearRect(0, 0, Params.windowWidth, Params.windowHeight);
+			ctx.clearRect(0, 0, this.params.windowWidth, this.params.windowHeight);
 			ctx.beginPath();
-			ctx.rect(0, 0, Params.windowWidth, Params.windowHeight);
+			ctx.rect(0, 0, this.params.windowWidth, this.params.windowHeight);
 			ctx.fillStyle = 'rgb(32, 36, 45)';
 			ctx.fill();
 
 			ctx.beginPath();
 			for (var i = 0; i < this.numMines; i++) {
 				var mineVerts = cloneMineVerts();
-				this.worldTransform(mineVerts, this.mines[i]);
+				mineVerts = this.worldTransform(mineVerts, this.mines[i]);
 				ctx.moveTo(mineVerts[0].x, mineVerts[0].y);
 				for (var g = 1; g < mineVerts.length; g++) {
 					ctx.lineTo(mineVerts[g].x, mineVerts[g].y);
@@ -139,9 +173,9 @@
 			ctx.beginPath();
 			for (var i = 0; i < this.numSweepers; i++) {
 				var sweeperVerts = cloneSweeperVerts();
-				this.sweepers[i].worldTransform(sweeperVerts);
+				sweeperVerts = this.sweepers[i].worldTransform(sweeperVerts);
 
-				if (i == Params.numElite) {
+				if (i == this.params.numElite) {
 					ctx.lineWidth = 1;
 					ctx.strokeStyle = 'rgb(176, 64, 60)';
 					ctx.stroke();
@@ -181,19 +215,19 @@
 		// to each vertex in the vertex buffer passed to this method.
 		worldTransform: function (vBuffer, vPos) {
 			var mat = new SmartSweeper.Matrix2d();
-			mat.scale(Params.mineScale, Params.mineScale);
-			mat.translate(vPos.x, vPos.y);
-			mat.transformPoints(vBuffer);
+			mat = mat.scale(this.params.mineScale, this.params.mineScale);
+			mat = mat.translate(vPos.x, vPos.y);
+			return mat.transformPoints(vBuffer);
 		},
 
 		update: function () {
-			if (this.ticks++ < Params.numTicks) {
+			if (this.ticks++ < this.params.numTicks) {
 				for (var i = 0; i < this.numSweepers; i++) {
 					if (!this.sweepers[i].update(this.mines)) {
 						console.log("Wrong amount of NN inputs!");
 						return false;
 					}
-					var grabHit = this.sweepers[i].checkForMine(this.mines, Params.mineScale);
+					var grabHit = this.sweepers[i].checkForMine(this.mines, this.params.mineScale);
 					if (grabHit >= 0) {
 						this.sweepers[i].incrementFitness();
 						this.mines[grabHit] = new SmartSweeper.Vector2d(

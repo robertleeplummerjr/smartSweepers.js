@@ -69,5 +69,6 @@
 		var vLength = SmartSweeper.Vector2dLength(v);
 		v.x = v.x / vLength;
 		v.y = v.y / vLength;
+		return v;
 	};
 })(SmartSweeper);

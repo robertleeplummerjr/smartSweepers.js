@@ -27,7 +27,27 @@ var canvas = document.getElementById('game-canvas'),
 	ctx = canvas.getContext('2d'),
 	button = document.getElementById('step-button'),
 
-	controller = new SmartSweeper.Controller(),
+	controller = new SmartSweeper.Controller({
+		framesPerSecond: 60,
+		numInputs: 4,
+		numHidden: 1 ,
+		neuronsPerHiddenLayer: 6,
+		numOutputs: 2,
+		activationResponse: 1,
+		bias: -1,
+		maxTurnRate: 0.3,
+		maxSpeed: 2,
+		sweeperScale: 5,
+		numMines: 40,
+		numSweepers: 30,
+		numTicks: 2000,
+		mineScale: 2,
+		crossoverRate: 0.7,
+		mutationRate: 0.1,
+		maxPerturbation: 0.3,
+		numElite: 4,
+		numCopiesElite: 1
+	}),
 	generation = controller.generations;
 
 controller.render(ctx);
