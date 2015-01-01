@@ -1,12 +1,11 @@
 (function (Brain) {
 	"use strict";
 
+	function randomClamped() {
+		return Math.random() - Math.random();
+	}
+
 	Brain.Neuron = function(numInputs) {
-
-		function randomClamped() {
-			return Math.random() - Math.random();
-		}
-
 		this.weights = [];
 
 		for (var i = 0; i <= numInputs; i++) {

@@ -1,6 +1,4 @@
-var SmartSweeper = (function(Brain) {
-	"use strict";
-
+(function(SmartSweepers, Brain) {
 	function clamp(arg, min, max) {
 		if (arg < min) {
 			arg = min;
@@ -13,13 +11,13 @@ var SmartSweeper = (function(Brain) {
 		return arg;
 	}
 
-	function SmartSweeper(params) {
+	function Sweeper(params) {
 		this.params = params;
 		this.brain = new Brain.NeuralNet(params);
-		this.position = new SmartSweeper.Vector2d(Math.random() * params.windowWidth, Math.random() * params.windowHeight);
-		this.direction = new SmartSweeper.Vector2d();
+		this.position = new SmartSweepers.Vector2d(Math.random() * params.windowWidth, Math.random() * params.windowHeight);
+		this.direction = new SmartSweepers.Vector2d();
 		this.rotation = Math.random() * params.twoPi;
-		this.speed;
+		this.speed = 0;
 		this.lTrack = 0.16;
 		this.rTrack = 0.16;
 		this.fitness = 0;
@@ -28,7 +26,7 @@ var SmartSweeper = (function(Brain) {
 	}
 
 	// Update SmartSweeper position using neural network
-	SmartSweeper.prototype = {
+	Sweeper.prototype = {
 		/**
 		 * First we take sensor readings and feed these into the sweepers brain. We receive two outputs from the brain.. lTrack & rTrack.
 		 * So given a force for each track we calculate the resultant rotation
@@ -40,11 +38,11 @@ var SmartSweeper = (function(Brain) {
 			//this will store all the inputs for the NN
 			var inputs = [],
 
-				//get vector to closest mine
+			//get vector to closest mine
 				closestMineRaw = this.getClosestMine(mines),
 
-				//normalise it
-				closestMine = SmartSweeper.Vector2dNormalize(closestMineRaw);
+			//normalise it
+				closestMine = SmartSweepers.Vector2dNormalize(closestMineRaw);
 
 			this.closestMine = closestMine;
 
@@ -111,7 +109,7 @@ var SmartSweeper = (function(Brain) {
 
 		// Where does vector Spoints come from?
 		worldTransform: function (sweeperVerts) {
-			var mat = new SmartSweeper.Matrix2d();
+			var mat = new SmartSweepers.Matrix2d();
 			mat = mat.scale(this.scale, this.scale);
 			mat = mat.rotate(this.rotation);
 			mat = mat.translate(this.position.x, this.position.y);
@@ -121,12 +119,12 @@ var SmartSweeper = (function(Brain) {
 
 		getClosestMine: function (mines) {
 			var closestMineDist = 99999;
-			var closestMine = SmartSweeper.Vector2d(0, 0);
+			var closestMine = SmartSweepers.Vector2d(0, 0);
 			for (var i = 0; i < mines.length; i++) {
-				var distToMine = SmartSweeper.Vector2dLength(SmartSweeper.Vector2dSub(mines[i], this.position));
+				var distToMine = SmartSweepers.Vector2dLength(SmartSweepers.Vector2dSub(mines[i], this.position));
 				if (distToMine < closestMineDist) {
 					closestMineDist = distToMine;
-					closestMine = SmartSweeper.Vector2dSub(this.position, mines[i]);
+					closestMine = SmartSweepers.Vector2dSub(this.position, mines[i]);
 					this.iClosestMine = i;
 				}
 			}
@@ -136,15 +134,15 @@ var SmartSweeper = (function(Brain) {
 		// Check for closeset mine. Return -1 if none are close enough
 		// What is the 5 for? Also what is size?
 		checkForMine: function (mines, size) {
-			var distToMine = SmartSweeper.Vector2dSub(this.position, mines[this.iClosestMine]);
-			if (SmartSweeper.Vector2dLength(distToMine) < (size + 5)) {
+			var distToMine = SmartSweepers.Vector2dSub(this.position, mines[this.iClosestMine]);
+			if (SmartSweepers.Vector2dLength(distToMine) < (size + 5)) {
 				return this.iClosestMine;
 			}
 			return -1;
 		},
 
 		reset: function () {
-			this.position = new SmartSweeper.Vector2d(Math.random() * this.params.windowWidth, Math.random() * this.params.windowHeight);
+			this.position = new SmartSweepers.Vector2d(Math.random() * this.params.windowWidth, Math.random() * this.params.windowHeight);
 			this.fitness = 0;
 			this.rotation = Math.random() * this.params.twoPi;
 		},
@@ -172,5 +170,5 @@ var SmartSweeper = (function(Brain) {
 
 	//source
 
-	return SmartSweeper;
-})(Brain);
+	SmartSweepers.Sweeper = Sweeper;
+})(SmartSweepers, Brain);

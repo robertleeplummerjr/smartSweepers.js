@@ -54,10 +54,11 @@
 		// Parent1, parent2, baby1, and baby2 are all genomes
 		// Looks like implementation of single point crossover
 		crossover: function(parent1, parent2, baby1, baby2) {
+			var i;
 			// If our random number exceeds cross over rate, then
 			// then no cross over is performed.
 			if (Math.random() > this.crossoverRate) {
-				for (var i = 0; i < parent1.weights.length; i++) {
+				for (i = 0; i < parent1.weights.length; i++) {
 					baby1.weights[i] = parent1.weights[i];
 					baby2.weights[i] = parent2.weights[i];
 				}
@@ -68,7 +69,7 @@
 				var cp = Math.floor((Math.random() * (this.numWeights - 1)));
 
 				// Swap weights
-				for (var i = 0; i < cp; i++) {
+				for (i = 0; i < cp; i++) {
 					baby1.weights[i] = parent1.weights[i];
 					baby2.weights[i] = parent2.weights[i];
 				}
@@ -99,10 +100,10 @@
 			// Why total fitness of all genomes?
 			// Oh yeah, we need to select from all genomes and not
 			// individuals.
-			var slice = Math.random() * this.totalFitness;
+			var slice = Math.random() * this.totalFitness,
+				chosenGenome = null,
+				currentFitness = 0;
 
-			var chosenGenome = null;
-			var currentFitness = 0;
 			// Keep adding fitness until it is above the slice,
 			// then we stop and take the current genome.
 			for (var i = 0; i < this.popSize; i++) {
@@ -149,7 +150,7 @@
 				this.totalFitness += this.pop[i].fitness;
 			}
 
-			this.avgFitness = this.totalFitness/this.popSize;
+			this.avgFitness = this.totalFitness / this.popSize;
 		},
 
 		reset: function() {
@@ -187,8 +188,8 @@
 			while (newPop.length < this.popSize) {
 				var parent1 = this.getChromoRoulette();
 				var parent2 = this.getChromoRoulette();
-				var baby1 = new Gene.Genome(new Array(this.numWeights), 0);
-				var baby2 = new Gene.Genome(new Array(this.numWeights), 0);
+				var baby1 = new Gene.Genome([this.numWeights], 0);
+				var baby2 = new Gene.Genome([this.numWeights], 0);
 				this.crossover(parent1, parent2, baby1, baby2);
 				this.mutate(baby1);
 				this.mutate(baby2);

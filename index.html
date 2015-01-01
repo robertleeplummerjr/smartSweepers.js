@@ -16,8 +16,13 @@
 			text-align: center;
 		}
 		#stats-table {
+			table-layout: fixed;
 			float:right;
 			width: 350px;
+		}
+		#stats-table th {
+			width: 33%
+			text-align: center;
 		}
 	</style>
 	<script src="Brain/base.js"></script>
@@ -29,19 +34,24 @@
 	<script src="Gene/Genome.js"></script>
 	<script src="Gene/GeneticAlgorithm.js"></script>
 
-	<script src="SmartSweeper/base.js"></script>
+	<script src="SmartSweepers/base.js"></script>
 
-	<script src="SmartSweeper/Controller.js"></script>
-	<script src="SmartSweeper/Matrix2d.js"></script>
-	<script src="SmartSweeper/Vector2d.js"></script>
+	<script src="SmartSweepers/Controller.js"></script>
+	<script src="SmartSweepers/Matrix2d.js"></script>
+	<script src="SmartSweepers/Sweeper.js"></script>
+	<script src="SmartSweepers/Vector2d.js"></script>
 </head>
 <body>
 	<h1>smartSweepers.js</h1>
 	<h5>your computer can think... & even reason</h5>
 	<div id="main" class="well">
+		<span title="When active, pauses visuals" style="position: absolute; margin-top: 400px;margin-left: 355px;">
+			<label for="step-fast">Fast</label>&nbsp;<input type="checkbox" id="step-fast"/>
+		</span>
+
 		<canvas id="game-canvas" width="400" height="400"></canvas>
+
 		<table id="stats-table">
-			<thead></thead>
 			<th>Generation</th>
 			<th>Best</th>
 			<th>Average</th>
@@ -54,9 +64,9 @@
 <script>
 var canvas = document.getElementById('game-canvas'),
 	ctx = canvas.getContext('2d'),
-	button = document.getElementById('step-button'),
+	check = document.getElementById('step-fast'),
 
-	controller = new SmartSweeper.Controller({
+	controller = new SmartSweepers.Controller({
 		framesPerSecond: 60,
 		numInputs: 4,
 		numHidden: 1 ,
@@ -65,7 +75,7 @@ var canvas = document.getElementById('game-canvas'),
 		activationResponse: 1,
 		bias: -1,
 		maxTurnRate: 0.3,
-		maxSpeed: 2,
+		maxSpeed: 10,
 		sweeperScale: 5,
 		numMines: 40,
 		numSweepers: 30,
@@ -79,6 +89,11 @@ var canvas = document.getElementById('game-canvas'),
 	}),
 	generation = controller.generations;
 
+controller.setFastRender(check.checked);
+check.onchange = function() {
+	controller.setFastRender(this.checked);
+};
+
 controller.render(ctx);
 controller.plotStats();
 
@@ -91,11 +106,33 @@ function animate() {
 		controller.plotStats();
 	}
 
-	requestAnimationFrame(function() {
-		animate();
-	});
+	setTimeout(function(){
+		requestAnimationFrame(function() {
+			if (controller.fastRender) {
+				quick();
+			} else {
+				animate();
+			}
+		});
+	}, 1000/controller.params.framesPerSecond);
 }
+function quick() {
+	controller.update();
 
+	if (generation != controller.generations) {
+		generation = controller.generations;
+		controller.plotStats();
+	}
+
+	setTimeout(function() {
+		if (controller.fastRender) {
+			quick();
+		} else {
+			animate();
+		}
+	}, 0);
+}
+setTimeout(animate, 1000/controller.params.framesPerSecond);
 animate();
 
 </script>

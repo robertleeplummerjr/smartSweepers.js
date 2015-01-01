@@ -1,4 +1,4 @@
-(function(SmartSweeper) {
+(function(SmartSweepers) {
 	"use strict";
 
 	var Matrix2d = function() {
@@ -84,5 +84,5 @@
 		}
 	};
 
-	SmartSweeper.Matrix2d = Matrix2d;
-}(SmartSweeper));
+	SmartSweepers.Matrix2d = Matrix2d;
+}(SmartSweepers));

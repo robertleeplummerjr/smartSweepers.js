@@ -45,14 +45,23 @@
 		 */
 		getWeights: function() {
 			var weights = [],
+				layer,
+				neuron,
 				i,
 				j,
 				k;
 
+			//for each layer
 			for (i = 0; i < this.numHiddenLayers + 1; i++) {
-				for (j = 0; j < this.layers[i].neurons.length; j++) {
-					for (k = 0; k < this.layers[i].neurons[j].weights.length; k++) {
-						weights.push(this.layers[i].neurons[j].weights[k]);
+				layer = this.layers[i];
+
+				//for each neuron
+				for (j = 0; j < layer.neurons.length; j++) {
+					neuron = layer.neurons[j];
+
+					//for each weight
+					for (k = 0; k < neuron.weights.length; k++) {
+						weights.push(neuron.weights[k]);
 					}
 				}
 			}
@@ -66,14 +75,24 @@
 		 */
 		putWeights: function(weights) {
 
-			var cWeight = 0;
+			var cWeight = 0,
+				layer,
+				neuron,
+				i,
+				j,
+				k;
+
 			//for each layer
-			for (var i = 0; i < this.numHiddenLayers + 1; i++) {
+			for (i = 0; i < this.numHiddenLayers + 1; i++) {
+				layer = this.layers[i];
+
 				//for each neuron
-				for (var j = 0; j < this.layers[i].neurons.length; j++) {
+				for (j = 0; j < layer.neurons.length; j++) {
+					neuron = layer.neurons[j];
+
 					//for each weight
-					for (var k = 0; k < this.layers[i].neurons[j].weights.length; k++) {
-						this.layers[i].neurons[j].weights[k] = weights[cWeight++];
+					for (k = 0; k < neuron.weights.length; k++) {
+						neuron.weights[k] = weights[cWeight++];
 					}
 				}
 			}
@@ -84,26 +103,33 @@
 		 * @returns {number}
 		 */
 		getNumWeights: function() {
-			var weights = 0;
+			var weights = 0,
+				layer,
+				neuron,
+				i,
+				j,
+				k;
 
 			//for each layer
-			for (var i = 0; i < this.layers.length; i++) {
+			for (i = 0; i < this.layers.length; i++) {
+				layer = this.layers[i];
+
 				//for each neuron
-				for (var j = 0; j < this.layers[i].neurons.length; j++) {
+				for (j = 0; j < layer.neurons.length; j++) {
+					neuron = layer.neurons[j];
+
 					//for each weight
-					for (var k = 0; k < this.layers[i].neurons[j].weights.length; k++) {
+					for (k = 0; k < neuron.weights.length; k++) {
 						weights++;
 					}
 				}
 			}
+
 			return weights;
 		},
 
 		// Looks like this is the important function that runs the neural network and gets our outputs
 		update: function(inputs) {
-			if (NeuralNet.myBrian === undefined) {
-				NeuralNet.myBrain = this;
-			}
 			//stores the resultant outputs from each layer
 			var outputs = [],
 				layer,
@@ -160,9 +186,7 @@
 					//we can store the outputs from each layer as we generate them.
 					//The combined activation is first filtered through the sigmoid
 					//function
-					var output = this.sigmoid(netinput, this.params.activationResponse);
-
-					outputs.push(output * 1);
+					outputs.push(this.sigmoid(netinput, this.params.activationResponse));
 
 					weight = 0;
 				}

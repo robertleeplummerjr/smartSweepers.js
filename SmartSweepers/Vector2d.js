@@ -1,4 +1,4 @@
-(function(SmartSweeper) {
+(function(SmartSweepers) {
 	"use strict";
 
 	function Vector2d (x, y) {
@@ -29,37 +29,37 @@
 		}
 	};
 
-	SmartSweeper.Vector2d = Vector2d;
+	SmartSweepers.Vector2d = Vector2d;
 
-	SmartSweeper.Vector2dAdd = function(lhs, rhs) {
-		return new SmartSweeper.Vector2d(lhs.x + rhs.x, lhs.y + rhs.y);
+	SmartSweepers.Vector2dAdd = function(lhs, rhs) {
+		return new Vector2d(lhs.x + rhs.x, lhs.y + rhs.y);
 	};
 
-	SmartSweeper.Vector2dSub = function(lhs, rhs) {
-		return new SmartSweeper.Vector2d(lhs.x - rhs.x, lhs.y - rhs.y);
+	SmartSweepers.Vector2dSub = function(lhs, rhs) {
+		return new Vector2d(lhs.x - rhs.x, lhs.y - rhs.y);
 	};
 
-	SmartSweeper.Vector2dMul = function(lhs, rhs) {
-		return new SmartSweeper.Vector2d(lhs.x * rhs.x, lhs.y * rhs.y);
+	SmartSweepers.Vector2dMul = function(lhs, rhs) {
+		return new Vector2d(lhs.x * rhs.x, lhs.y * rhs.y);
 	};
 
-	SmartSweeper.Vector2dDiv = function(lhs, rhs) {
-		return new SmartSweeper.Vector2d(lhs.x / rhs.x, lhs.y / rhs.y);
+	SmartSweepers.Vector2dDiv = function(lhs, rhs) {
+		return new Vector2d(lhs.x / rhs.x, lhs.y / rhs.y);
 	};
 
 	// Use Pythagorean to find hypotenuse
-	SmartSweeper.Vector2dLength = function(vector2d) {
+	SmartSweepers.Vector2dLength = function(vector2d) {
 		return Math.sqrt(vector2d.x * vector2d.x + vector2d.y * vector2d.y);
 	};
 
 	// Calculate dot product
-	SmartSweeper.Vector2dDot = function(v1, v2) {
+	SmartSweepers.Vector2dDot = function(v1, v2) {
 		return v1.x * v2.x + v1.y * v2.y;
 	};
 
 	// Find sign of vector. If positive, the v2 is clockwise of v1.
 	// Anticlockwise if negative
-	SmartSweeper.Vector2dSign = function(v1, v2) {
+	SmartSweepers.Vector2dSign = function(v1, v2) {
 		if (v1.y * v2.x > v1.x * v2.y) {
 			return 1;
 		} else {
@@ -67,10 +67,10 @@
 		}
 	};
 
-	SmartSweeper.Vector2dNormalize = function(v) {
-		var vLength = SmartSweeper.Vector2dLength(v);
+	SmartSweepers.Vector2dNormalize = function(v) {
+		var vLength = SmartSweepers.Vector2dLength(v);
 		v.x = v.x / vLength;
 		v.y = v.y / vLength;
 		return v;
 	};
-})(SmartSweeper);
+})(SmartSweepers);
