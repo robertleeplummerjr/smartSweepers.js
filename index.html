@@ -148,7 +148,7 @@ var canvas = document.getElementById('game-canvas'),
 	ctx = canvas.getContext('2d'),
 	check = document.getElementById('step-fast'),
 
-	controller = new SmartSweepers.Controller({
+	controller = new SmartSweepers.Controller(ctx, {
 		framesPerSecond: 60,
 		numInputs: 4,
 		numHidden: 1 ,
@@ -176,12 +176,9 @@ check.onchange = function() {
 	controller.setFastRender(this.checked);
 };
 
-controller.render(ctx);
-controller.plotStats();
-
 function animate() {
 	controller.update();
-	controller.render(ctx);
+	controller.render();
 
 	if (generation != controller.generations) {
 		generation = controller.generations;

@@ -60,7 +60,7 @@
 			numCopiesElite: 0
 		};
 
-	var Controller = function (params) {
+	var Controller = function (ctx, params) {
 		var key,
 			i;
 
@@ -72,6 +72,7 @@
 			}
 		}
 
+		this.ctx = ctx;
 		this.params = params;
 		this.population = 0;
 		this.sweepers = [];
@@ -150,9 +151,10 @@
 			}
 		},
 
-		render: function (ctx) {
+		render: function () {
 			var i,
-				g;
+				g,
+				ctx = this.ctx;
 
 			ctx.clearRect(0, 0, this.params.windowWidth, this.params.windowHeight);
 			ctx.beginPath();
