@@ -267,6 +267,28 @@
 		// Pretty clever way to toggle!
 		toggleFasterRender: function () {
 			this.fastRender = !this.fastRender;
+		},
+
+		getExperience: function () {
+			var i = 0,
+				sweepers = this.sweepers,
+				max = sweepers.length,
+				result = [];
+
+			for (;i < max; i++) {
+				result.push(sweepers[i].brain.layers);
+			}
+
+			return result;
+		},
+		setExperience: function(experience) {
+			var i = 0,
+				sweepers = this.sweepers,
+				max = sweepers.length;
+
+			for (;i < max; i++) {
+				sweepers[i].brain.layers = experience[i];
+			}
 		}
 	};
 
