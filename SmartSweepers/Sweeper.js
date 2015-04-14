@@ -131,7 +131,7 @@
 			return closestMine;
 		},
 
-		// Check for closeset mine. Return -1 if none are close enough
+		// Check for closest mine. Return -1 if none are close enough
 		// What is the 5 for? Also what is size?
 		checkForMine: function (mines, size) {
 			var distToMine = SmartSweepers.Vector2dSub(this.position, mines[this.iClosestMine]);

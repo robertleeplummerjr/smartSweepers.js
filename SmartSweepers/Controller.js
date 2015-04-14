@@ -33,6 +33,7 @@
 				{x: 1, y: -1}
 			];
 		},
+
 		Params = {
 			pi: Math.PI,
 			halfPi: Math.PI/2,
@@ -58,94 +59,95 @@
 			maxPerturbation: 0,
 			numElite: 0,
 			numCopiesElite: 0
-		};
+		},
+		Controller = function (ctx, params) {
+			var key,
+				i;
 
-	var Controller = function (ctx, params) {
-		var key,
-			i;
+			if (params == undefined) params = {};
 
-		if (params == undefined) params = {};
-
-		for (key in Params) if (Params.hasOwnProperty(key)) {
-			if (params[key] === undefined) {
-				params[key] = Params[key];
+			for (key in Params) if (Params.hasOwnProperty(key)) {
+				if (params[key] === undefined) {
+					params[key] = Params[key];
+				}
 			}
-		}
 
-		this.ctx = ctx;
-		this.params = params;
-		this.population = 0;
-		this.sweepers = [];
-		this.mines = [];
-		this.ga = null;
-		this.numSweepers = params.numSweepers;
-		this.numMines = params.numMines;
-		this.numWeightsForNN = 0;
+			this.ctx = ctx;
+			this.params = params;
+			this.population = 0;
+			this.sweepers = [];
+			this.mines = [];
+			this.ga = null;
+			this.numSweepers = params.numSweepers;
+			this.numMines = params.numMines;
+			this.numWeightsForNN = 0;
 
-		// Keep Per generation
-		this.avgFitness = [];
+			// Keep Per generation
+			this.avgFitness = [];
 
-		// Keep Per generation
-		this.bestFitness = [];
+			// Keep Per generation
+			this.bestFitness = [];
 
-		// Cycles per generation? What does this mean?
-		this.ticks = 0;
+			// Cycles per generation? What does this mean?
+			this.ticks = 0;
 
-		// Current generation;
-		this.generations = 0;
+			// Current generation;
+			this.generations = 0;
 
-		// Dimension of window
-		this.cxClient = params.windowWidth;
-		this.cyClient = params.windowHeight;
+			// Dimension of window
+			this.cxClient = params.windowWidth;
+			this.cyClient = params.windowHeight;
 
-		this.fastRender = false;
+			this.fastRender = false;
+			this.viewPaths = false;
 
-		for (i = 0; i < this.numSweepers; ++i) {
-			this.sweepers.push(new SmartSweepers.Sweeper(params));
-		}
+			for (i = 0; i < this.numSweepers; ++i) {
+				this.sweepers.push(new SmartSweepers.Sweeper(params));
+			}
 
-		this.numWeightsForNN = this.sweepers[0].getNumWeights();
-		this.ga = new Gene.GA(
-			this.numSweepers,
-			params.mutationRate,
-			params.crossoverRate,
-			this.numWeightsForNN,
-			params.maxPerturbation,
-			params.numElite,
-			params.numCopiesElite
-		);
+			this.numWeightsForNN = this.sweepers[0].getNumWeights();
+			this.ga = new Gene.GA(
+				this.numSweepers,
+				params.mutationRate,
+				params.crossoverRate,
+				this.numWeightsForNN,
+				params.maxPerturbation,
+				params.numElite,
+				params.numCopiesElite
+			);
 
-		this.population = this.ga.getChromos();
+			this.population = this.ga.getChromos();
 
-		for (i = 0; i < this.numSweepers; i++) {
-			this.sweepers[i].putWeights(this.population[i].weights);
-		}
+			for (i = 0; i < this.numSweepers; i++) {
+				this.sweepers[i].putWeights(this.population[i].weights);
+			}
 
-		for (i = 0; i < this.numMines; i++) {
-			this.mines.push(new SmartSweepers.Vector2d(
-				Math.random() * this.cxClient, Math.random() * this.cyClient));
-		}
-	};
+			for (i = 0; i < this.numMines; i++) {
+				this.mines.push(new SmartSweepers.Vector2d(
+					Math.random() * this.cxClient, Math.random() * this.cyClient));
+			}
+		};
 
 	Controller.prototype = {
 		plotStats: function (ctx) {
 			if (this.generations < 1) return;
 
-			var generationEl = document.createElement('td');
+			var generationEl = document.createElement('td'),
+				bestFitnessEl = document.createElement('td'),
+				avgFitnessEl = document.createElement('td'),
+				rowEl = document.createElement('tr'),
+				tableEl = document.getElementById('stats-table');
+
 			generationEl.innerHTML = this.generations;
 
-			var bestFitnessEl = document.createElement('td');
 			bestFitnessEl.innerHTML = this.ga.getBestFitness();
 
-			var avgFitnessEl = document.createElement('td');
 			avgFitnessEl.innerHTML = this.ga.getAvgFitness().toFixed(2);
 
-			var rowEl = document.createElement('tr');
 			rowEl.appendChild(generationEl);
 			rowEl.appendChild(bestFitnessEl);
 			rowEl.appendChild(avgFitnessEl);
 
-			var tableEl = document.getElementById('stats-table');
 			if (tableEl !== null) {
 				tableEl.appendChild(rowEl);
 			}
@@ -154,7 +156,11 @@
 		render: function () {
 			var i,
 				g,
-				ctx = this.ctx;
+				ctx = this.ctx,
+				mineVerts,
+				sweeperVerts,
+				sweeper,
+				mine;
 
 			ctx.clearRect(0, 0, this.params.windowWidth, this.params.windowHeight);
 			ctx.beginPath();
@@ -164,7 +170,7 @@
 
 			ctx.beginPath();
 			for (i = 0; i < this.numMines; i++) {
-				var mineVerts = cloneMineVerts();
+				mineVerts = cloneMineVerts();
 				mineVerts = this.worldTransform(mineVerts, this.mines[i]);
 				ctx.moveTo(mineVerts[0].x, mineVerts[0].y);
 				for (g = 1; g < mineVerts.length; g++) {
@@ -178,8 +184,7 @@
 
 			ctx.beginPath();
 			for (i = 0; i < this.numSweepers; i++) {
-				var sweeperVerts = cloneSweeperVerts();
-				sweeperVerts = this.sweepers[i].worldTransform(sweeperVerts);
+				sweeperVerts = this.sweepers[i].worldTransform(cloneSweeperVerts());
 
 				if (i == this.params.numElite) {
 					ctx.lineWidth = 1;
@@ -215,6 +220,20 @@
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = 'rgb(123, 144, 164)';
 			ctx.stroke();
+
+			if (this.viewPaths) {
+				ctx.beginPath();
+				for (i = 0; i < this.numSweepers; i++) {
+					sweeper = this.sweepers[i];
+					mine = this.mines[sweeper.iClosestMine];
+
+					ctx.moveTo(sweeper.position.x, sweeper.position.y);
+					ctx.lineTo(mine.x, mine.y);
+				}
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = 'rgb(255, 45, 3)';
+				ctx.stroke();
+			}
 		},
 
 		// Sets up translation matrices for mines and applies the world transform
@@ -227,16 +246,19 @@
 		},
 
 		update: function () {
-			var i;
+			var i,
+				grabHit,
+				sweeper;
 			if (this.ticks++ < this.params.numTicks) {
 				for (i = 0; i < this.numSweepers; i++) {
-					if (!this.sweepers[i].update(this.mines)) {
+					sweeper = this.sweepers[i];
+					if (!sweeper.update(this.mines)) {
 						console.log("Wrong amount of NN inputs!");
 						return false;
 					}
-					var grabHit = this.sweepers[i].checkForMine(this.mines, this.params.mineScale);
+					grabHit = sweeper.checkForMine(this.mines, this.params.mineScale);
 					if (grabHit >= 0) {
-						this.sweepers[i].incrementFitness();
+						sweeper.incrementFitness();
 						this.mines[grabHit] = new SmartSweepers.Vector2d(
 							Math.random() * this.cxClient, Math.random() * this.cyClient);
 					}
@@ -264,9 +286,20 @@
 			this.fastRender = fastRender;
 		},
 
-		// Pretty clever way to toggle!
 		toggleFasterRender: function () {
 			this.fastRender = !this.fastRender;
+		},
+
+		getViewPaths: function () {
+			return this.viewPaths;
+		},
+
+		setViewPaths: function (viewPaths) {
+			this.viewPaths = viewPaths;
+		},
+
+		toggleViewPaths: function () {
+			this.viewPaths = !this.viewPaths;
 		},
 
 		getExperience: function () {

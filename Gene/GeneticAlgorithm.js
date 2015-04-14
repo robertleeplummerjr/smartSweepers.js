@@ -42,8 +42,9 @@
 		// Generate a population of of chromosomes with random weights
 		// Also set fitnesses to 0
 		for (var i = 0; i < this.popSize; i++) {
-			var weights = [];
-			for (var j = 0; j < this.numWeights; j++) {
+			var weights = [],
+				j;
+			for (j = 0; j < this.numWeights; j++) {
 				weights.push(Math.random() - Math.random());
 			}
 			this.pop.push(new Gene.Genome(weights, 0));
@@ -54,7 +55,8 @@
 		// Parent1, parent2, baby1, and baby2 are all genomes
 		// Looks like implementation of single point crossover
 		crossover: function(parent1, parent2, baby1, baby2) {
-			var i;
+			var i,
+				cp;
 			// If our random number exceeds cross over rate, then
 			// then no cross over is performed.
 			if (Math.random() > this.crossoverRate) {
@@ -66,7 +68,7 @@
 				baby2.fitness = parent2.fitness;
 			} else {
 				// Pick a crossover point.
-				var cp = Math.floor((Math.random() * (this.numWeights - 1)));
+				cp = Math.floor((Math.random() * (this.numWeights - 1)));
 
 				// Swap weights
 				for (i = 0; i < cp; i++) {
@@ -74,7 +76,7 @@
 					baby2.weights[i] = parent2.weights[i];
 				}
 
-				for (var i = cp; i < parent1.weights.length; i++) {
+				for (i = cp; i < parent1.weights.length; i++) {
 					baby1.weights[i] = parent1.weights[i];
 					baby2.weights[i] = parent2.weights[i];
 				}
@@ -102,11 +104,12 @@
 			// individuals.
 			var slice = Math.random() * this.totalFitness,
 				chosenGenome = null,
-				currentFitness = 0;
+				currentFitness = 0,
+				i;
 
 			// Keep adding fitness until it is above the slice,
 			// then we stop and take the current genome.
-			for (var i = 0; i < this.popSize; i++) {
+			for (i = 0; i < this.popSize; i++) {
 				currentFitness += this.pop[i].fitness;
 				if (currentFitness >= slice) {
 					chosenGenome = this.pop[i];
@@ -121,9 +124,10 @@
 		// Basically we want to get the N best genomes and then
 		// Copy them M times.
 		grabNBest: function(nBest, numCopies) {
-			var pop = [];
+			var pop = [],
+				i;
 			while (nBest--) {
-				for (var i = 0; i < numCopies; i++) {
+				for (i = 0; i < numCopies; i++) {
 					pop.push(this.pop[(this.popSize - 1) - nBest]);
 				}
 			}
@@ -183,13 +187,17 @@
 			// TODO(richard-to): Remvoe these hardcoded parameters
 			// Essentially new pop starts off with the best 4 genomes here
 			// After that the rest are filled in trhough crossover, mutation
-			var newPop = this.grabNBest(this.numElite, this.numCopiesElite);
+			var newPop = this.grabNBest(this.numElite, this.numCopiesElite),
+				parent1,
+				parent2,
+				baby1,
+				baby2;
 
 			while (newPop.length < this.popSize) {
-				var parent1 = this.getChromoRoulette();
-				var parent2 = this.getChromoRoulette();
-				var baby1 = new Gene.Genome([this.numWeights], 0);
-				var baby2 = new Gene.Genome([this.numWeights], 0);
+				parent1 = this.getChromoRoulette();
+				parent2 = this.getChromoRoulette();
+				baby1 = new Gene.Genome([this.numWeights], 0);
+				baby2 = new Gene.Genome([this.numWeights], 0);
 				this.crossover(parent1, parent2, baby1, baby2);
 				this.mutate(baby1);
 				this.mutate(baby2);
