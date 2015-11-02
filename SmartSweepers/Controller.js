@@ -1,4 +1,4 @@
-(function(SmartSweepers, Gene) {
+(function(SmartSweepers, Experience) {
 	"use strict";
 
 	var cloneSweeperVerts = function () {
@@ -74,10 +74,10 @@
 
 			this.ctx = ctx;
 			this.params = params;
-			this.population = 0;
+			this.ideas = 0;
 			this.sweepers = [];
 			this.mines = [];
-			this.ga = null;
+			this.wisdom = null;
 			this.numSweepers = params.numSweepers;
 			this.numMines = params.numMines;
 			this.numWeightsForNN = 0;
@@ -106,7 +106,7 @@
 			}
 
 			this.numWeightsForNN = this.sweepers[0].getNumWeights();
-			this.ga = new Gene.GA(
+			this.wisdom = new Experience.Wisdom(
 				this.numSweepers,
 				params.mutationRate,
 				params.crossoverRate,
@@ -116,10 +116,10 @@
 				params.numCopiesElite
 			);
 
-			this.population = this.ga.getChromos();
+			this.ideas = this.wisdom.getIdeas();
 
 			for (i = 0; i < this.numSweepers; i++) {
-				this.sweepers[i].putWeights(this.population[i].weights);
+				this.sweepers[i].putWeights(this.ideas[i].weights);
 			}
 
 			for (i = 0; i < this.numMines; i++) {
@@ -138,11 +138,11 @@
 				rowEl = document.createElement('tr'),
 				tableEl = document.getElementById('stats-table');
 
-			generationEl.innerHTML = this.generations;
+			generationEl.innerHTML = this.generations.toString();
 
-			bestFitnessEl.innerHTML = this.ga.getBestFitness();
+			bestFitnessEl.innerHTML = this.wisdom.getBestFitness();
 
-			avgFitnessEl.innerHTML = this.ga.getAvgFitness().toFixed(2);
+			avgFitnessEl.innerHTML = this.wisdom.getAvgFitness().toFixed(2);
 
 			rowEl.appendChild(generationEl);
 			rowEl.appendChild(bestFitnessEl);
@@ -262,16 +262,16 @@
 						this.mines[grabHit] = new SmartSweepers.Vector2d(
 							Math.random() * this.cxClient, Math.random() * this.cyClient);
 					}
-					this.population[i].fitness = this.sweepers[i].getFitness();
+					this.ideas[i].fitness = this.sweepers[i].getFitness();
 				}
 			} else {
-				this.avgFitness.push(this.ga.getAvgFitness());
-				this.bestFitness.push(this.ga.getBestFitness());
+				this.avgFitness.push(this.wisdom.getAvgFitness());
+				this.bestFitness.push(this.wisdom.getBestFitness());
 				++this.generations;
 				this.ticks = 0;
-				this.population = this.ga.epoch(this.population);
+				this.ideas = this.wisdom.epoch(this.ideas);
 				for (i = 0; i < this.numSweepers; i++) {
-					this.sweepers[i].putWeights(this.population[i].weights);
+					this.sweepers[i].putWeights(this.ideas[i].weights);
 					this.sweepers[i].reset();
 				}
 			}
@@ -326,4 +326,4 @@
 	};
 
 	SmartSweepers.Controller = Controller;
-}(SmartSweepers, Gene));
+}(SmartSweepers, Experience));

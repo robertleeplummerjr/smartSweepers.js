@@ -20,22 +20,26 @@
 		 * random values -1 < w < 1
 		 */
 		createNet: function() {
+			var max = this.numHiddenLayers - 1,
+					i = 0;
 
 			//create the layers of the network
 			if (this.numHiddenLayers > 0) {
 				//create first hidden layer
-				this.layers.push(new Brain.NeuronLayer(this.neuronsPerHiddenLayer, this.numInputs));
-				for (var i = 0; i < this.numHiddenLayers - 1; i++) {
-					this.layers.push(new Brain.NeuronLayer(
-						this.neuronsPerHiddenLayer, this.neuronsPerHiddenLayer));
+				this.layers.push(
+						new Brain.NeuronLayer(this.neuronsPerHiddenLayer, this.numInputs));
+				for (; i < max; i++) {
+					this.layers.push(
+							new Brain.NeuronLayer(this.neuronsPerHiddenLayer, this.neuronsPerHiddenLayer));
 				}
 
 				//create output layer
 				this.layers.push(
-					new Brain.NeuronLayer(this.numOutputs, this.neuronsPerHiddenLayer));
+						new Brain.NeuronLayer(this.numOutputs, this.neuronsPerHiddenLayer));
 			} else {
 				//create output layer
-				this.layers.push(new Brain.NeuronLayer(this.numOutputs, this.numInputs));
+				this.layers.push(
+						new Brain.NeuronLayer(this.numOutputs, this.numInputs));
 			}
 		},
 
@@ -128,7 +132,7 @@
 			return weights;
 		},
 
-		// Looks like this is the important function that runs the neural network and gets our outputs
+		//run the neural network and get outputs
 		update: function(inputs) {
 			//stores the resultant outputs from each layer
 			var outputs = [],
@@ -152,10 +156,9 @@
 			for (i = 0; i < this.numHiddenLayers + 1; i++) {
 				layer = this.layers[i];
 				neurons = layer.neurons;
-				// After the first layer, the inputs get set to the output
-				// of previous layer
+				//After the first layer, the inputs get set to the output of previous layer
 				if (i > 0) {
-					//note: we clone the output so it isn't cleared after this step
+					//we clone the output so it isn't cleared after this step
 					inputs = outputs.slice(0);
 				}
 
@@ -163,8 +166,10 @@
 
 				weight = 0;
 
-				//for each neuron sum the (inputs * corresponding weights).Throw
-				//the total at our sigmoid function to get the output.
+				/*
+				for each neuron sum the (inputs * corresponding weights).Throw
+				the total at our sigmoid function to get the output
+				*/
 				for (j = 0; j < neurons.length; j++) {
 					neuron = neurons[j];
 					netinput = 0;
@@ -175,17 +180,17 @@
 					for (k = 0; k < numInputs - 1; k++) {
 
 						//sum the weights x inputs
-						netinput += neuron.weights[k] *
-							inputs[weight++];
+						netinput += neuron.weights[k] * inputs[weight++];
 					}
 
 					//add in the bias
-					netinput += neuron.weights[numInputs - 1] *
-						this.params.bias;
+					netinput += neuron.weights[numInputs - 1] * this.params.bias;
 
-					//we can store the outputs from each layer as we generate them.
-					//The combined activation is first filtered through the sigmoid
-					//function
+					/*
+					we can store the outputs from each layer as we generate them.
+					The combined activation is first filtered through the sigmoid
+					function
+					*/
 					outputs.push(this.sigmoid(netinput, this.params.activationResponse));
 
 					weight = 0;
@@ -195,7 +200,6 @@
 			return outputs;
 		},
 
-		// Sigmoid!!!
 		sigmoid: function(netinput, response) {
 			return (1 / (1 + Math.exp(-netinput / response)));
 		}

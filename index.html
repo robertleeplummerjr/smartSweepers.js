@@ -61,12 +61,11 @@
 	<script src="Brain/NeuralNet.js"></script>
 	<script src="Brain/Neuron.js"></script>
 
-	<script src="Gene/base.js"></script>
-	<script src="Gene/Genome.js"></script>
-	<script src="Gene/GeneticAlgorithm.js"></script>
+	<script src="Experience/base.js"></script>
+	<script src="Experience/Idea.js"></script>
+	<script src="Experience/Wisdom.js"></script>
 
 	<script src="SmartSweepers/base.js"></script>
-
 	<script src="SmartSweepers/Controller.js"></script>
 	<script src="SmartSweepers/Matrix2d.js"></script>
 	<script src="SmartSweepers/Sweeper.js"></script>
@@ -98,9 +97,13 @@
 		<canvas id="game-canvas" width="400" height="400"></canvas>
 		<div id="fast-animation" src="animation.html" style="display: none;" title="Reasoning..."></div>
 		<table id="stats-table">
-			<th>Generation</th>
-			<th>Best</th>
-			<th>Average</th>
+			<thead>
+				<tr>
+					<th>Generation</th>
+					<th>Best</th>
+					<th>Average</th>
+				</tr>
+			</thead>
 		</table>
 		<br>
 		<span>
