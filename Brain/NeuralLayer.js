@@ -1,9 +1,9 @@
 (function(Brain) {
 	"use strict";
-	Brain.NeuronLayer = function(numNeurons, numInputs) {
+	Brain.NeuronLayer = function(neuronCount, inputCount) {
 		this.neurons = [];
-		for (var i = 0; i < numNeurons; i++) {
-			this.neurons.push(new Brain.Neuron(numInputs));
+		for (var i = 0; i < neuronCount; i++) {
+			this.neurons.push(new Brain.Neuron(inputCount));
 		}
 	};
 })(Brain);

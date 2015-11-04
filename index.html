@@ -154,106 +154,124 @@
 	</div>
 </body>
 <script>
-var canvas = document.getElementById('game-canvas'),
-	ctx = canvas.getContext('2d'),
-	stepFast = document.getElementById('step-fast'),
-	viewPaths = document.getElementById('view-paths'),
-	fastAnimation = document.getElementById('fast-animation'),
+	var canvas = document.getElementById('game-canvas'),
+		ctx = canvas.getContext('2d'),
+		stepFast = document.getElementById('step-fast'),
+		viewPaths = document.getElementById('view-paths'),
+		fastAnimation = document.getElementById('fast-animation'),
 
-	controller = new SmartSweepers.Controller(ctx, {
-		framesPerSecond: 60,
-		numInputs: 4,
-		numHidden: 1 ,
-		neuronsPerHiddenLayer: 6,
-		numOutputs: 2,
-		activationResponse: 1,
-		bias: -1,
-		maxTurnRate: 0.3,
-		maxSpeed: 10,
-		sweeperScale: 5,
-		numMines: 40,
-		numSweepers: 30,
-		numTicks: 2000,
-		mineScale: 2,
-		crossoverRate: 0.7,
-		mutationRate: 0.1,
-		maxPerturbation: 0.3,
-		numElite: 4,
-		numCopiesElite: 1
-	}),
-	generation = controller.generations;
+		controller = new SmartSweepers.Controller(ctx, {
+			framesPerSecond: 60,
+			maxTurnRate: 0.3,
+			maxSpeed: 10,
+			sweeperScale: 5,
+			numMines: 40,
+			numSweepers: 30,
+			numTicks: 2000,
+			mineScale: 2,
+			crossoverRate: 0.7,
+			mutationRate: 0.1,
+			maxPerturbation: 0.3,
+			numElite: 4,
+			numCopiesElite: 1
+		}),
+		generation = controller.generations;
 
-$(fastAnimation)
-		.load(fastAnimation.getAttribute('src'))
-		.css({
-			'position': 'absolute',
-			'left': $(canvas).position().left,
-			'top': $(canvas).position().top
-		})
-		.width(canvas.clientWidth)
-		.height(canvas.clientHeight);
+	$(fastAnimation)
+			.load(fastAnimation.getAttribute('src'))
+			.css({
+				'position': 'absolute',
+				'left': $(canvas).position().left,
+				'top': $(canvas).position().top
+			})
+			.width(canvas.clientWidth)
+			.height(canvas.clientHeight);
 
-controller.setFastRender(stepFast.checked);
-if (stepFast.checked) {
-	canvas.style.visibility = 'hidden';
-	fastAnimation.style.display = '';
-} else {
-	canvas.style.visibility = '';
-	fastAnimation.style.display = 'none';
-}
-stepFast.onchange = function() {
-	controller.setFastRender(this.checked);
-	if (this.checked) {
+	controller.setFastRender(stepFast.checked);
+	if (stepFast.checked) {
 		canvas.style.visibility = 'hidden';
 		fastAnimation.style.display = '';
 	} else {
 		canvas.style.visibility = '';
 		fastAnimation.style.display = 'none';
 	}
-};
+	stepFast.onchange = function() {
+		controller.setFastRender(this.checked);
+		if (this.checked) {
+			canvas.style.visibility = 'hidden';
+			fastAnimation.style.display = '';
+		} else {
+			canvas.style.visibility = '';
+			fastAnimation.style.display = 'none';
+		}
+	};
 
-controller.setViewPaths(viewPaths.checked);
-viewPaths.onchange = function() {
-	controller.setViewPaths(this.checked);
-};
+	controller.setViewPaths(viewPaths.checked);
+	viewPaths.onchange = function() {
+		controller.setViewPaths(this.checked);
+	};
 
-function animate() {
-	controller.update();
-	controller.render();
+	function animate() {
+		controller.update();
+		controller.render();
 
-	if (generation != controller.generations) {
-		generation = controller.generations;
-		controller.plotStats();
+		if (generation != controller.generations) {
+			generation = controller.generations;
+			plotStats();
+		}
+
+		setTimeout(function(){
+			requestAnimationFrame(function() {
+				if (controller.fastRender) {
+					quick();
+				} else {
+					animate();
+				}
+			});
+		}, 0);
 	}
+	function quick() {
+		controller.update();
 
-	setTimeout(function(){
-		requestAnimationFrame(function() {
+		if (generation != controller.generations) {
+			generation = controller.generations;
+			controller.plotStats();
+		}
+
+		setTimeout(function() {
 			if (controller.fastRender) {
 				quick();
 			} else {
 				animate();
 			}
-		});
-	}, 0);
-}
-function quick() {
-	controller.update();
-
-	if (generation != controller.generations) {
-		generation = controller.generations;
-		controller.plotStats();
+		}, 0);
 	}
 
-	setTimeout(function() {
-		if (controller.fastRender) {
-			quick();
-		} else {
-			animate();
-		}
-	}, 0);
-}
+	//controller.setExperience(SmartSweepers.experiencedAdult);
+	animate();
 
-//controller.setExperience(SmartSweepers.experiencedAdult);
-animate();
+	function plotStats() {
+		if (controller.generations < 1) return;
+
+		var generationEl = document.createElement('td'),
+				bestFitnessEl = document.createElement('td'),
+				avgFitnessEl = document.createElement('td'),
+				rowEl = document.createElement('tr'),
+				tableEl = document.getElementById('stats-table');
+
+		generationEl.innerHTML = controller.generations.toString();
+
+		bestFitnessEl.innerHTML = controller.wisdom.getBestFitness();
+
+		avgFitnessEl.innerHTML = controller.wisdom.getAvgFitness().toFixed(2);
+
+		rowEl.appendChild(generationEl);
+		rowEl.appendChild(bestFitnessEl);
+		rowEl.appendChild(avgFitnessEl);
+
+		if (tableEl !== null) {
+			tableEl.appendChild(rowEl);
+		}
+	}
 </script>
 </html>

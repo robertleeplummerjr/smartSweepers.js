@@ -2,12 +2,12 @@
 	"use strict";
 
 	function NeuralNet(params) {
-		this.params = params;
-
-		this.numInputs = params.numInputs;
-		this.numOutputs = params.numOutputs;
-		this.numHiddenLayers = params.numHidden;
-		this.neuronsPerHiddenLayer = params.neuronsPerHiddenLayer;
+		this.bias = params.bias;
+		this.inputCount = params.inputCount;
+		this.outputCount = params.outputCount;
+		this.hiddenLayerCount = params.hiddenLayerCount;
+		this.activationResponse = params.activationResponse;
+		this.hiddenLayerNeuronCount = params.hiddenLayerNeuronCount;
 
 		this.layers = [];
 
@@ -20,26 +20,26 @@
 		 * random values -1 < w < 1
 		 */
 		createNet: function() {
-			var max = this.numHiddenLayers - 1,
+			var max = this.hiddenLayerCount - 1,
 					i = 0;
 
 			//create the layers of the network
-			if (this.numHiddenLayers > 0) {
+			if (this.hiddenLayerCount > 0) {
 				//create first hidden layer
 				this.layers.push(
-						new Brain.NeuronLayer(this.neuronsPerHiddenLayer, this.numInputs));
+						new Brain.NeuronLayer(this.hiddenLayerNeuronCount, this.inputCount));
 				for (; i < max; i++) {
 					this.layers.push(
-							new Brain.NeuronLayer(this.neuronsPerHiddenLayer, this.neuronsPerHiddenLayer));
+							new Brain.NeuronLayer(this.hiddenLayerNeuronCount, this.hiddenLayerNeuronCount));
 				}
 
 				//create output layer
 				this.layers.push(
-						new Brain.NeuronLayer(this.numOutputs, this.neuronsPerHiddenLayer));
+						new Brain.NeuronLayer(this.outputCount, this.hiddenLayerNeuronCount));
 			} else {
 				//create output layer
 				this.layers.push(
-						new Brain.NeuronLayer(this.numOutputs, this.numInputs));
+						new Brain.NeuronLayer(this.outputCount, this.inputCount));
 			}
 		},
 
@@ -56,7 +56,7 @@
 				k;
 
 			//for each layer
-			for (i = 0; i < this.numHiddenLayers + 1; i++) {
+			for (i = 0; i <= this.hiddenLayerCount; i++) {
 				layer = this.layers[i];
 
 				//for each neuron
@@ -87,7 +87,7 @@
 				k;
 
 			//for each layer
-			for (i = 0; i < this.numHiddenLayers + 1; i++) {
+			for (i = 0; i <= this.hiddenLayerCount; i++) {
 				layer = this.layers[i];
 
 				//for each neuron
@@ -140,20 +140,20 @@
 				neurons,
 				neuron,
 				weight = 0,
-				netinput,
-				numInputs,
+				netInput,
+				inputCount,
 				i,
 				j,
 				k;
 
 			//first check that we have the correct amount of inputs
-			if (inputs.length != this.numInputs) {
+			if (inputs.length != this.inputCount) {
 				//just return an empty vector if incorrect.
 				return outputs;
 			}
 
 			//For each layer....
-			for (i = 0; i < this.numHiddenLayers + 1; i++) {
+			for (i = 0; i <= this.hiddenLayerCount; i++) {
 				layer = this.layers[i];
 				neurons = layer.neurons;
 				//After the first layer, the inputs get set to the output of previous layer
@@ -172,26 +172,26 @@
 				*/
 				for (j = 0; j < neurons.length; j++) {
 					neuron = neurons[j];
-					netinput = 0;
+          netInput = 0;
 
-					numInputs = neuron.weights.length * 1;
+					inputCount = neuron.weights.length * 1;
 
 					//for each weight
-					for (k = 0; k < numInputs - 1; k++) {
+					for (k = 0; k < inputCount - 1; k++) {
 
 						//sum the weights x inputs
-						netinput += neuron.weights[k] * inputs[weight++];
+            netInput += neuron.weights[k] * inputs[weight++];
 					}
 
 					//add in the bias
-					netinput += neuron.weights[numInputs - 1] * this.params.bias;
+          netInput += neuron.weights[inputCount - 1] * this.bias;
 
 					/*
 					we can store the outputs from each layer as we generate them.
 					The combined activation is first filtered through the sigmoid
 					function
 					*/
-					outputs.push(this.sigmoid(netinput, this.params.activationResponse));
+					outputs.push(this.sigmoid(netInput, this.activationResponse));
 
 					weight = 0;
 				}
@@ -200,8 +200,8 @@
 			return outputs;
 		},
 
-		sigmoid: function(netinput, response) {
-			return (1 / (1 + Math.exp(-netinput / response)));
+		sigmoid: function(netInput, response) {
+			return (1 / (1 + Math.exp(-netInput / response)));
 		}
 	};
 

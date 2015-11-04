@@ -41,12 +41,6 @@
 			windowWidth: 400,
 			windowHeight: 400,
 			framesPerSecond: 0,
-			numInputs: 0,
-			numHidden: 0,
-			neuronsPerHiddenLayer: 0,
-			numOutputs: 0,
-			activationResponse: 0,
-			bias: 0,
 			maxTurnRate: 0,
 			maxSpeed: 0,
 			sweeperScale: 0,
@@ -74,7 +68,7 @@
 
 			this.ctx = ctx;
 			this.params = params;
-			this.ideas = 0;
+			this.ideas = null;
 			this.sweepers = [];
 			this.mines = [];
 			this.wisdom = null;
@@ -129,30 +123,6 @@
 		};
 
 	Controller.prototype = {
-		plotStats: function (ctx) {
-			if (this.generations < 1) return;
-
-			var generationEl = document.createElement('td'),
-				bestFitnessEl = document.createElement('td'),
-				avgFitnessEl = document.createElement('td'),
-				rowEl = document.createElement('tr'),
-				tableEl = document.getElementById('stats-table');
-
-			generationEl.innerHTML = this.generations.toString();
-
-			bestFitnessEl.innerHTML = this.wisdom.getBestFitness();
-
-			avgFitnessEl.innerHTML = this.wisdom.getAvgFitness().toFixed(2);
-
-			rowEl.appendChild(generationEl);
-			rowEl.appendChild(bestFitnessEl);
-			rowEl.appendChild(avgFitnessEl);
-
-			if (tableEl !== null) {
-				tableEl.appendChild(rowEl);
-			}
-		},
-
 		render: function () {
 			var i,
 				g,
@@ -225,6 +195,7 @@
 				ctx.beginPath();
 				for (i = 0; i < this.numSweepers; i++) {
 					sweeper = this.sweepers[i];
+					if (sweeper.iClosestMine < 0) continue;
 					mine = this.mines[sweeper.iClosestMine];
 
 					ctx.moveTo(sweeper.position.x, sweeper.position.y);
@@ -252,7 +223,7 @@
 			if (this.ticks++ < this.params.numTicks) {
 				for (i = 0; i < this.numSweepers; i++) {
 					sweeper = this.sweepers[i];
-					if (!sweeper.update(this.mines)) {
+					if (!sweeper.update(this.mines, this.sweepers)) {
 						console.log("Wrong amount of NN inputs!");
 						return false;
 					}

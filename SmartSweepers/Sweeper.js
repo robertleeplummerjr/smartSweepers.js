@@ -12,8 +12,17 @@
 	}
 
 	function Sweeper(params) {
-		this.params = params;
-		this.brain = new Brain.NeuralNet(params);
+		var config = Sweeper.config;
+
+		this.brain = new Brain.NeuralNet({
+			bias: config.neuralNetBias,
+			inputCount: config.neuralNetInputCount,
+			outputCount: config.neuralNetOutputCount,
+			hiddenLayerCount: config.neuralNetHiddenLayerCount,
+			activationResponse: config.neuralNetActivationResponse,
+			hiddenLayerNeuronCount: config.neuralNetHiddenLayerNeuronCount
+		});
+    this.params = params;
 		this.position = new SmartSweepers.Vector2d(Math.random() * params.windowWidth, Math.random() * params.windowHeight);
 		this.direction = new SmartSweepers.Vector2d();
 		this.rotation = Math.random() * params.twoPi;
@@ -34,32 +43,40 @@
 		 * @param {Object} mines sweepers 'look at' vector (x, y)
 		 * @returns {boolean}
 		 */
-		update: function (mines) {
+		update: function (mines, sweepers) {
 			//this will store all the inputs for the NN
 			var inputs = [],
 
 			//get vector to closest mine
 				closestMineRaw = this.getClosestMine(mines),
+        closestSweeperRaw = this.getClosestSweeper(sweepers),
 
 			//normalise it
-				closestMine = SmartSweepers.Vector2dNormalize(closestMineRaw);
+				closestMine = SmartSweepers.vector2dNormalize(closestMineRaw),
+				closestSweeper = SmartSweepers.vector2dNormalize(closestSweeperRaw);
 
 			this.closestMine = closestMine;
+      this.closestSweeper = closestSweeper;
 
 			//add in vector to closest mine
 			inputs.push(closestMine.x);
 			inputs.push(closestMine.y);
 
+      inputs.push(closestSweeper.x);
+      inputs.push(closestSweeper.y);
+
 			//add in sweepers look at vector
 			inputs.push(this.direction.x);
 			inputs.push(this.direction.y);
+
+      inputs.push(this.speed);
 
 			//update the brain and get feedback
 			var output = this.brain.update(inputs);
 
 			//make sure there were no errors in calculating the
 			//output
-			if (output.length < this.params.numOutputs) {
+			if (output.length < Sweeper.config.outputCount) {
 				return false;
 			}
 
@@ -119,23 +136,37 @@
 
 		getClosestMine: function (mines) {
 			var closestMineDist = 99999;
-			var closestMine = SmartSweepers.Vector2d(0, 0);
+			var closestMine = null;
 			for (var i = 0; i < mines.length; i++) {
-				var distToMine = SmartSweepers.Vector2dLength(SmartSweepers.Vector2dSub(mines[i], this.position));
+				var distToMine = SmartSweepers.vector2dLength(SmartSweepers.vector2dSub(mines[i], this.position));
 				if (distToMine < closestMineDist) {
 					closestMineDist = distToMine;
-					closestMine = SmartSweepers.Vector2dSub(this.position, mines[i]);
+					closestMine = SmartSweepers.vector2dSub(this.position, mines[i]);
 					this.iClosestMine = i;
 				}
 			}
 			return closestMine;
 		},
 
-		// Check for closest mine. Return -1 if none are close enough
-		// What is the 5 for? Also what is size?
+    getClosestSweeper: function (sweepers) {
+      var closestSweeperDist = 99999;
+      var closestSweeper = null;
+      for (var i = 0; i < sweepers.length; i++) {
+        if (this === sweepers[i]) continue;
+
+        var dist = SmartSweepers.vector2dLength(SmartSweepers.vector2dSub(sweepers[i].position, this.position));
+        if (dist < closestSweeperDist) {
+          closestSweeperDist = dist;
+          closestSweeper = SmartSweepers.vector2dSub(this.position, sweepers[i].position);
+          this.iClosestSweeper = i;
+        }
+      }
+      return closestSweeper;
+    },
+
 		checkForMine: function (mines, size) {
-			var distToMine = SmartSweepers.Vector2dSub(this.position, mines[this.iClosestMine]);
-			if (SmartSweepers.Vector2dLength(distToMine) < (size + 5)) {
+			var distToMine = SmartSweepers.vector2dSub(this.position, mines[this.iClosestMine]);
+			if (SmartSweepers.vector2dLength(distToMine) < (size + 5)) {
 				return this.iClosestMine;
 			}
 			return -1;
@@ -145,10 +176,6 @@
 			this.position = new SmartSweepers.Vector2d(Math.random() * this.params.windowWidth, Math.random() * this.params.windowHeight);
 			this.fitness = 0;
 			this.rotation = Math.random() * this.params.twoPi;
-		},
-
-		position: function () {
-			return this.position;
 		},
 
 		incrementFitness: function () {
@@ -168,7 +195,14 @@
 		}
 	};
 
-	//source
+	Sweeper.config = {
+		neuralNetBias: -1,
+		neuralNetInputCount: 7,
+		neuralNetOutputCount: 2,
+		neuralNetHiddenLayerCount: 1,
+    neuralNetHiddenLayerNeuronCount: 6,
+		neuralNetActivationResponse: 1
+	};
 
 	SmartSweepers.Sweeper = Sweeper;
 })(SmartSweepers, Brain);
